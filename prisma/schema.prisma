@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id           String               @id @default(uuid())
+  nome         String
+  email        String               @unique
+  // Relacionamentos
+  experiencias Experiencia[]        @relation("AutorExperiencia")
+  marcacoes    ExperienciaUsuario[]
+}
+
+model Local {
+  id           String        @id @default(uuid())
+  nome         String
+  latitude     Float
+  longitude    Float
+  experiencias Experiencia[]
+}
+
+model Experiencia {
+  id            String               @id @default(uuid())
+  usuario_id    String
+  local_id      String
+  nota_sabor    Int
+  nota_ambiente Int
+  comentario    String?              @db.Text
+  data_visita   DateTime             @default(now())
+
+  // Relacionamentos
+  usuario       Usuario              @relation("AutorExperiencia", fields: [usuario_id], references: [id])
+  local         Local                @relation(fields: [local_id], references: [id])
+  amigos_juntos ExperienciaUsuario[]
+}
+
+// Tabela com o novo nome
+model ExperienciaUsuario {
+  experiencia_id String
+  usuario_id     String // O ID do utilizador que foi marcado junto na experiência
+
+  // Relacionamentos
+  experiencia    Experiencia @relation(fields: [experiencia_id], references: [id])
+  usuario        Usuario     @relation(fields: [usuario_id], references: [id])
+
+  // Chave primária composta
+  @@id([experiencia_id, usuario_id])
+}
