@@ -1,100 +1,172 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import 'leaflet/dist/leaflet.css';
-
-  let mapElement: HTMLElement;
-  let map: any;
-  let L: any;
-
-  // Variáveis para controlar o formulário
-  let mostrarFormulario = false;
-  let latAtual = 0;
-  let lngAtual = 0;
-  let nomeLocal = '';
-
-  onMount(async () => {
-    L = await import('leaflet');
-    map = L.map(mapElement).setView([-12.6975, -38.3241], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    // Evento: Quando o utilizador clica no mapa
-    map.on('click', (evento: any) => {
-      latAtual = evento.latlng.lat;
-      lngAtual = evento.latlng.lng;
-      mostrarFormulario = true; // Abre a janela do formulário
-    });
-  });
-
-  // Função para guardar o local na base de dados
-  async function guardarLocal() {
-    const resposta = await fetch('/api/locais', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome: nomeLocal,
-        latitude: latAtual,
-        longitude: lngAtual
-      })
-    });
-
-    if (resposta.ok) {
-      // Adiciona o pino visualmente após guardar
-      L.marker([latAtual, lngAtual]).addTo(map)
-        .bindPopup(nomeLocal)
-        .openPopup();
-      
-      // Limpa e fecha o formulário
-      nomeLocal = '';
-      mostrarFormulario = false;
-    }
-  }
+  import { feedExperiencias } from "../lib/dadosMock";
 </script>
 
-<div class="map-container" bind:this={mapElement}></div>
+<div class="feed-container">
+  {#each feedExperiencias as post}
+    <article class="post-card">
+      <!-- Cabeçalho -->
+      <div class="post-header">
+        <img src={post.autor.foto} alt="Avatar" class="avatar" />
+        <div class="info-local">
+          <h2>{post.autor.nome}</h2>
+          <p class="local">📍 {post.local.nome} • {post.local.cidade}</p>
+        </div>
+      </div>
 
-<!-- Formulário flutuante que aparece ao clicar no mapa -->
-{#if mostrarFormulario}
-  <div class="modal">
-    <h3>Novo Local</h3>
-    <p>Lat: {latAtual.toFixed(4)}, Lng: {lngAtual.toFixed(4)}</p>
-    
-    <input type="text" bind:value={nomeLocal} placeholder="Nome do local (ex: Hamburgueria)" />
-    
-    <div class="botoes">
-      <button on:click={guardarLocal}>Guardar</button>
-      <button on:click={() => mostrarFormulario = false}>Cancelar</button>
-    </div>
-  </div>
-{/if}
+      <!-- Corpo: A Imagem da Experiência -->
+      {#if post.imagem}
+        <img src={post.imagem} alt="Foto da experiência" class="post-imagem" />
+      {/if}
+
+      <!-- Corpo: Textos e Marcações -->
+      <div class="post-body">
+        <p class="notas">
+          ⭐ Sabor: {post.avaliacao.sabor}/5 | 🏖️ Ambiente: {post.avaliacao
+            .ambiente}/5
+        </p>
+        <p class="comentario">"{post.avaliacao.comentario}"</p>
+
+        {#if post.amigos_marcados.length > 0}
+          <div class="marcacoes">
+            <span>Com: </span>
+            {#each post.amigos_marcados as amigo}
+              <span class="tag-amigo">@{amigo.nome}</span>
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      <!-- O Mini Mapa da Postagem -->
+      <div class="mini-mapa">
+        <iframe
+          title="Mapa de {post.local.nome}"
+          width="100%"
+          height="150"
+          frameborder="0"
+          scrolling="no"
+          marginheight="0"
+          marginwidth="0"
+          src="https://www.openstreetmap.org/export/embed.html?bbox={post.local
+            .longitude - 0.005},{post.local.latitude - 0.005},{post.local
+            .longitude + 0.005},{post.local.latitude +
+            0.005}&layer=mapnik&marker={post.local.latitude},{post.local
+            .longitude}"
+        >
+        </iframe>
+      </div>
+
+      <!-- Rodapé: Interações -->
+      <div class="post-footer">
+        <button class="btn-like">❤️ {post.social.likes} Likes</button>
+        <button class="btn-comment"
+          >💬 {post.social.comentarios.length} Comentários</button
+        >
+      </div>
+    </article>
+  {/each}
+</div>
 
 <style>
-  :global(body) { margin: 0; padding: 0; font-family: sans-serif; }
-  .map-container { width: 100vw; height: 100vh; }
-  
-  .modal {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+  .feed-container {
+    max-width: 500px;
+    margin: 20px auto;
+    font-family: sans-serif;
+    background-color: #f0f2f5;
+    padding: 10px;
+  }
+
+  .post-card {
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    z-index: 1000; /* Garante que fica por cima do mapa */
-    width: 300px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Mantém a imagem dentro da borda arredondada */
   }
-  
-  input {
-    width: 100%;
-    padding: 8px;
-    margin: 10px 0;
-    box-sizing: border-box;
-  }
-  
-  .botoes {
+
+  .post-header {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+  }
+
+  .info-local h2 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+  }
+  .info-local .local {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: #666;
+  }
+
+  /* Estilo da nova imagem principal */
+  .post-imagem {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .post-body {
+    padding: 16px;
+  }
+
+  .notas {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 0;
+  }
+  .comentario {
+    font-size: 15px;
+    color: #444;
+    line-height: 1.4;
+  }
+
+  .marcacoes {
+    margin-top: 12px;
+    font-size: 14px;
+    color: #555;
+  }
+  .tag-amigo {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 4px 8px;
+    border-radius: 16px;
+    font-weight: 500;
+  }
+
+  /* Área do mini mapa */
+  .mini-mapa {
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+  }
+
+  .post-footer {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+  }
+
+  button {
+    background: none;
+    border: none;
+    color: #666;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+    transition: color 0.2s;
+  }
+
+  .btn-like:hover {
+    color: #e0245e;
   }
 </style>

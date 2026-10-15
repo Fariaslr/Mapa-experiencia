@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 export async function POST({ request }) {
   const dados = await request.json();
   
-  // Guarda o novo local na base de dados
   const novoLocal = await prisma.local.create({
     data: {
       nome: dados.nome,
