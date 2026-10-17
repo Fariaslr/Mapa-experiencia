@@ -17,11 +17,12 @@
         nome: 'Lucas Farias',
         foto: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas'
       },
+      // Aqui está a substituição correta, DENTRO do objeto novaMemoria
       local: {
         nome: dados.novoLocal,
         cidade: dados.novaCidade || 'Camaçari, Bahia',
-        latitude: -12.6975,
-        longitude: -38.3241
+        latitude: dados.novaLat,
+        longitude: dados.novaLng
       },
       avaliacao: {
         sabor: dados.novoSabor,
@@ -41,18 +42,17 @@
   }
 </script>
 
-<Header on:abrirModal={() => mostrarFormulario = true} />
+<Header onAbrirModal={() => mostrarFormulario = true} />
 
 {#if mostrarFormulario}
   <PostModal 
-    on:fechar={() => mostrarFormulario = false} 
-    on:salvar={adicionarMemoria} 
+    onFechar={() => mostrarFormulario = false} 
+    onSalvar={adicionarMemoria} 
   />
 {/if}
 
 <div class="feed-container">
   {#each posts as post}
-    <!-- Passamos o objeto 'post' para dentro do componente -->
     <PostCard {post} />
   {/each}
 </div>
