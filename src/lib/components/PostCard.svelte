@@ -1,15 +1,28 @@
 <script lang="ts">
   let { post } = $props(); 
+  let curtiu = $state(false);
+
+  function alternarLike() {
+    if (curtiu) {
+      post.social.likes--; 
+      curtiu = false;
+    } else {
+      post.social.likes++; 
+      curtiu = true;
+    }
+  }
 </script>
 
 <article class="post-card">
-  <div class="post-header">
-    <img src={post.autor.foto} alt="Avatar" class="avatar" />
-    <div class="header-info">
-      <h2>{post.autor.nome}</h2>
-      <p class="data-local">{new Date(post.data_visita).toLocaleDateString('pt-BR')} · App Experiências · {post.local.cidade}</p>
+  <a href="/perfil/{post.autor.id}" class="post-header-link">
+    <div class="post-header">
+      <img src={post.autor.foto} alt="Avatar" class="avatar" />
+      <div class="header-info">
+        <h2>{post.autor.nome}</h2>
+        <p class="data-local">{new Date(post.data_visita).toLocaleDateString('pt-BR')} · App Experiências · {post.local.cidade}</p>
+      </div>
     </div>
-  </div>
+  </a>
 
   <div class="post-titulo">
     <span class="icone-atividade">🍽️</span>
@@ -53,16 +66,24 @@
   </div>
 
   <div class="post-footer">
-    <button class="btn-like">👍 {post.social.likes} Likes</button>
+    <button 
+      class="btn-like {curtiu ? 'curtido' : ''}" 
+      onclick={alternarLike}
+    >
+      {curtiu ? '❤️' : '👍'} {post.social.likes} Likes
+    </button>
     <button class="btn-comment">💬 {post.social.comentarios.length} Comentários</button>
   </div>
 </article>
 
 <style>
+  .post-header-link { text-decoration: none; color: inherit; display: block; }
+  .post-header-link:hover .header-info h2 { color: #fc4c02; } 
+  
   .post-card { background: white; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); padding: 16px; }
   .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
   .avatar { width: 40px; height: 40px; border-radius: 50%; }
-  .header-info h2 { margin: 0; font-size: 15px; font-weight: 600; color: #242428; }
+  .header-info h2 { margin: 0; font-size: 15px; font-weight: 600; color: #242428; transition: color 0.2s; }
   .header-info .data-local { margin: 2px 0 0 0; font-size: 12px; color: #6b6b83; }
   .post-titulo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
   .icone-atividade { font-size: 24px; }
@@ -79,6 +100,9 @@
   .post-body { margin-bottom: 16px; }
   .comentario { font-size: 15px; color: #242428; line-height: 1.5; margin: 0; }
   .post-footer { display: flex; gap: 16px; border-top: 1px solid #efefef; padding-top: 12px; }
-  .post-footer button { background: none; border: none; color: #6b6b83; font-weight: 600; cursor: pointer; font-size: 14px; transition: color 0.2s; }
+  
+  .post-footer button { background: none; border: none; color: #6b6b83; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
   .btn-like:hover { color: #fc4c02; }
+  
+  .curtido { color: #fc4c02 !important; transform: scale(1.05); }
 </style>

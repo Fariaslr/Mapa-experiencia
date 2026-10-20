@@ -1,23 +1,17 @@
 <script lang="ts">
-  import { feedExperiencias } from '../lib/dadosMock';
+    import PostCard from '#lib/components/PostCard.svelte';
+    import PostModal from '#lib/components/PostModal.svelte';
+    import { feedExperiencias } from '#lib/dadosMock.ts';
   import Header from '../lib/components/Header.svelte';
-  import PostModal from '../lib/components/PostModal.svelte';
-  import PostCard from '../lib/components/PostCard.svelte';
+ 
 
-  let posts = [...feedExperiencias];
-  let mostrarFormulario = false;
+  let posts = $state([...feedExperiencias]);
+  let mostrarFormulario = $state(false);
 
-  function adicionarMemoria(evento: any) {
-    const dados = evento.detail;
-
+  function adicionarMemoria(dados: any) {
     const novaMemoria = {
       id: 'post-' + Date.now(),
-      autor: {
-        id: 'user-lucas',
-        nome: 'Lucas Farias',
-        foto: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas'
-      },
-      // Aqui está a substituição correta, DENTRO do objeto novaMemoria
+      autor: { id: 'user-lucas', nome: 'Lucas Farias', foto: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas' },
       local: {
         nome: dados.novoLocal,
         cidade: dados.novaCidade || 'Camaçari, Bahia',
@@ -31,9 +25,7 @@
       },
       data_visita: new Date().toISOString(),
       imagem: dados.novaImagem || 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      amigos_marcados: [
-        { id: 'user-mel', nome: 'Mel Sabbatini', foto: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mel' }
-      ],
+      amigos_marcados: [ { id: 'user-mel', nome: 'Mel Sabbatini', foto: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mel' } ],
       social: { likes: 0, comentarios: [] }
     };
 
